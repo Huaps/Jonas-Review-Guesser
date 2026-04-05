@@ -2,6 +2,26 @@
   const ns = (root.ReviewGuesser = root.ReviewGuesser || {});
 
   /**
+   * Detect whether current Steam page is in a Chinese locale.
+   *
+   * @returns {boolean}
+   */
+  function isChineseLocale() {
+    const htmlLang = (document.documentElement?.lang || "").toLowerCase();
+    if (
+      htmlLang === "zh" ||
+      htmlLang.startsWith("zh-") ||
+      htmlLang.includes("schinese") ||
+      htmlLang.includes("tchinese")
+    ) {
+      return true;
+    }
+
+    const langParam = new URLSearchParams(location.search).get("l") || "";
+    return /^(?:zh|zh-cn|zh-tw|schinese|tchinese)$/i.test(langParam);
+  }
+
+  /**
    * Replace non-breaking spaces with regular spaces and trim the string.
    * @param {string} s
    * @returns {string}
@@ -29,17 +49,20 @@
     // Zero special-case (handles "No reviews", etc.) — leave general case to caller
     if (/^\s*0\s*$/.test(s)) return 0;
 
-    // Suffixes (K/M/B + common "Mio"/"Tsd")
-    const mSuf = s.match(/(\d+[.,]?\d*)\s*(K|M|B|k|m|b|Mio|Tsd)\b/);
+    // Suffixes (K/M/B + common "Mio"/"Tsd" + Chinese "万/亿")
+    const mSuf = s.match(/(\d+[.,]?\d*)\s*(K|M|B|k|m|b|Mio|Tsd|万|亿)/);
     if (mSuf) {
       const n = parseFloat(mSuf[1].replace(",", "."));
-      const suf = mSuf[2].toLowerCase();
-      const mult =
-        suf === "k" || suf === "tsd"
-          ? 1e3
-          : suf === "m" || suf === "mio"
-          ? 1e6
-          : 1e9;
+      const sufRaw = mSuf[2];
+      const suf = sufRaw.toLowerCase();
+      const mult = (() => {
+        if (suf === "k" || suf === "tsd") return 1e3;
+        if (suf === "m" || suf === "mio") return 1e6;
+        if (suf === "b") return 1e9;
+        if (sufRaw === "万") return 1e4;
+        if (sufRaw === "亿") return 1e8;
+        return 1;
+      })();
       const v = Math.round(n * mult);
       return Number.isFinite(v) ? v : null;
     }
@@ -57,6 +80,12 @@
     );
     if (mReviewWord) return parseInt(mReviewWord[1], 10);
 
+    // Chinese fallback: "N 篇用户评测" / "N 用户评测" / "N 评测"
+    const mZhReviewWord = s.match(
+      /(\d+)\s*(?=(?:篇\s*)?(?:用户\s*)?评测\b)/
+    );
+    if (mZhReviewWord) return parseInt(mZhReviewWord[1], 10);
+
     return null;
   }
 
@@ -73,6 +102,7 @@
   }
 
   // Expose on namespace
+  ns.isChineseLocale = isChineseLocale;
   ns.normalizeSpaces = normalizeSpaces;
   ns.parseReviewCountRaw = parseReviewCountRaw;
   ns.formatNum = formatNum;

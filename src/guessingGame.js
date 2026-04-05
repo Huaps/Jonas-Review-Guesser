@@ -7,6 +7,35 @@
   const hideAllSteamReviewCounts = ns.hideAllSteamReviewCounts;
   const waitForAnyReviewCount = ns.waitForAnyReviewCount;
   const formatNum = ns.formatNum;
+  const isChineseLocale = ns.isChineseLocale;
+  const restoreSteamReviewsAfterGuess = ns.restoreSteamReviewsAfterGuess;
+  const GUESSED_APP_IDS = (ns.__guessedAppIds = ns.__guessedAppIds || new Set());
+
+  function getText(key) {
+    const zh = !!(isChineseLocale && isChineseLocale());
+    const dict = {
+      loading: zh ? "正在等待评测数据加载…" : "Waiting for review count to load…",
+      loadError: zh ? "评测数量读取失败" : "Failed to load review count",
+      note: zh
+        ? "请猜测“全部评测”（所有语言）的总数量。"
+        : "Guess the All Reviews count (all languages).",
+    };
+    return dict[key] || key;
+  }
+
+  function markAppGuessed(appId) {
+    if (!appId) return;
+    GUESSED_APP_IDS.add(String(appId));
+  }
+
+  function hasGuessedApp(appId) {
+    return !!appId && GUESSED_APP_IDS.has(String(appId));
+  }
+
+  function isCurrentAppGuessed() {
+    const appId = getCurrentSteamAppId();
+    return hasGuessedApp(appId);
+  }
 
   function buildGuessSet(trueCount) {
     const MIN_ANSWERS = 6;
@@ -179,7 +208,7 @@
       wrap.dataset.extAppid = appId;
       const msg = document.createElement("div");
       msg.className = "ext-wait";
-      msg.textContent = "Waiting for review count to load…";
+      msg.textContent = getText("loading");
       wrap.appendChild(msg);
       container.prepend(wrap);
     } else {
@@ -191,7 +220,7 @@
           msg.className = "ext-wait";
           wrap.appendChild(msg);
         }
-        msg.textContent = "Waiting for review count to load…";
+        msg.textContent = getText("loading");
       }
     }
     container.classList.add("ext-mask-reviews");
@@ -206,6 +235,11 @@
     const existingWrap = document.querySelector(
       `.ext-steam-guess[data-ext-appid="${appId}"]`
     );
+    if (hasGuessedApp(appId)) {
+      restoreSteamReviewsAfterGuess && restoreSteamReviewsAfterGuess();
+      return;
+    }
+
     if (existingWrap && existingWrap.dataset.state === "ready") {
       hideAllSteamReviewCounts();
       return;
@@ -239,8 +273,7 @@
       const got = await waitForAnyReviewCount(5000);
       if (!got) {
         if (!wrap.querySelector(".ext-error")) {
-          wrap.innerHTML =
-            '<div class="ext-error">Failed to load review count</div>';
+          wrap.innerHTML = `<div class="ext-error">${getText("loadError")}</div>`;
         }
         return;
       }
@@ -265,14 +298,14 @@
 
       const note = document.createElement("div");
       note.className = "ext-subtle";
-      note.textContent =
-        "Guess the All Reviews count (all languages).";
+      note.textContent = getText("note");
       wrap.appendChild(note);
 
       const correct = trueCount;
       const mark = (picked) => {
         if (wrap.dataset.locked === "1") return;
         wrap.dataset.locked = "1";
+        markAppGuessed(appId);
         btns.forEach((btn) => {
           const val = parseInt(btn.dataset.value, 10);
           if (val === correct) btn.classList.add("correct");
@@ -282,6 +315,7 @@
           btn.setAttribute("aria-disabled", "true");
           btn.style.pointerEvents = "none";
         });
+        restoreSteamReviewsAfterGuess && restoreSteamReviewsAfterGuess();
       };
       btns.forEach((b) =>
         b.addEventListener(
@@ -295,5 +329,6 @@
     }
   }
 
+  ns.isCurrentAppGuessed = isCurrentAppGuessed;
   ns.injectSteamGuessingGame = injectSteamGuessingGame;
 })(window);
