@@ -3,12 +3,46 @@
   const parseReviewCountRaw = ns.parseReviewCountRaw;
 
   /**
+   * Reveal Steam review UI after user has made a guess.
+   * We only unhide review-related areas so non-review spoiler hides stay intact.
+   */
+  function restoreSteamReviewsAfterGuess() {
+    // Remove container-level masking applied by the extension.
+    document
+      .querySelectorAll(".ext-mask-reviews")
+      .forEach((el) => el.classList.remove("ext-mask-reviews"));
+
+    const scopes = [
+      document.getElementById("userReviews"),
+      document.getElementById("app_reviews_hash"),
+      document.querySelector(".user_reviews"),
+      document.querySelector(".review_ctn"),
+      document.querySelector(".app_reviews_area"),
+      document.querySelector("[data-panel='reviews']"),
+    ].filter(Boolean);
+
+    scopes.forEach((scope) => {
+      scope.classList.remove("ext-hide");
+      scope.querySelectorAll(".ext-hide").forEach((el) => {
+        if (!el.closest(".ext-steam-guess")) {
+          el.classList.remove("ext-hide");
+        }
+      });
+    });
+  }
+
+  /**
    * Hide *all* review counts across the Steam page (to avoid spoilers),
    * while keeping the "Overall Reviews" block structurally visible.
    */
   function hideAllSteamReviewCounts() {
     // When running at document_start, body may not exist yet.
     if (!document.body) return;
+
+    if (ns.isCurrentAppGuessed && ns.isCurrentAppGuessed()) {
+      restoreSteamReviewsAfterGuess();
+      return;
+    }
 
     const isInOverallSummary = (el) =>
       !!el.closest(".review_summary_ctn.overall_summary_ctn");
@@ -393,6 +427,7 @@
 
   // Expose
   ns.hideAllSteamReviewCounts = hideAllSteamReviewCounts;
+  ns.restoreSteamReviewsAfterGuess = restoreSteamReviewsAfterGuess;
   ns.tryGetFromLanguageBreakdown = tryGetFromLanguageBreakdown;
   ns.tryGetFromOverallSummary = tryGetFromOverallSummary;
   ns.tryGetFromReviewScoreSummaries = tryGetFromReviewScoreSummaries;

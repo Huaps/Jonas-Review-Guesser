@@ -8,6 +8,8 @@
   const waitForAnyReviewCount = ns.waitForAnyReviewCount;
   const formatNum = ns.formatNum;
   const isChineseLocale = ns.isChineseLocale;
+  const restoreSteamReviewsAfterGuess = ns.restoreSteamReviewsAfterGuess;
+  const GUESSED_APP_IDS = (ns.__guessedAppIds = ns.__guessedAppIds || new Set());
 
   function getText(key) {
     const zh = !!(isChineseLocale && isChineseLocale());
@@ -19,6 +21,20 @@
         : "Guess the All Reviews count (all languages).",
     };
     return dict[key] || key;
+  }
+
+  function markAppGuessed(appId) {
+    if (!appId) return;
+    GUESSED_APP_IDS.add(String(appId));
+  }
+
+  function hasGuessedApp(appId) {
+    return !!appId && GUESSED_APP_IDS.has(String(appId));
+  }
+
+  function isCurrentAppGuessed() {
+    const appId = getCurrentSteamAppId();
+    return hasGuessedApp(appId);
   }
 
   function buildGuessSet(trueCount) {
@@ -219,6 +235,11 @@
     const existingWrap = document.querySelector(
       `.ext-steam-guess[data-ext-appid="${appId}"]`
     );
+    if (hasGuessedApp(appId)) {
+      restoreSteamReviewsAfterGuess && restoreSteamReviewsAfterGuess();
+      return;
+    }
+
     if (existingWrap && existingWrap.dataset.state === "ready") {
       hideAllSteamReviewCounts();
       return;
@@ -284,6 +305,7 @@
       const mark = (picked) => {
         if (wrap.dataset.locked === "1") return;
         wrap.dataset.locked = "1";
+        markAppGuessed(appId);
         btns.forEach((btn) => {
           const val = parseInt(btn.dataset.value, 10);
           if (val === correct) btn.classList.add("correct");
@@ -293,6 +315,7 @@
           btn.setAttribute("aria-disabled", "true");
           btn.style.pointerEvents = "none";
         });
+        restoreSteamReviewsAfterGuess && restoreSteamReviewsAfterGuess();
       };
       btns.forEach((b) =>
         b.addEventListener(
@@ -306,5 +329,6 @@
     }
   }
 
+  ns.isCurrentAppGuessed = isCurrentAppGuessed;
   ns.injectSteamGuessingGame = injectSteamGuessingGame;
 })(window);
