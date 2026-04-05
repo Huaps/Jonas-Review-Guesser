@@ -1,8 +1,16 @@
-# Jonas Review Guesser
+# Jonas Review Guesser (China Edition Fork)
 
 ## Overview
 
 Jonas Review Guesser is a Chrome extension that turns Steam into a review guessing game. It hides the review count (and some other clues) on Steam store pages and asks you to guess the number of reviews instead. On top of that, it adds buttons at the top of the page that take you to completely random games on Steam, giving you a new way to browse the store, step outside your usual bubble, and gradually improve your intuition for how successful different games are.
+
+This fork is focused on a China-specific edition.
+
+### China Edition Focus
+
+- China-only random pool: add filtering for titles made by China-based developers/studios.
+- Chinese language support: make the guessing flow work when Steam language is set to Simplified Chinese (not only English).
+- Maintainable data pipeline: introduce dedicated China app ID lists for raw and balanced random modes.
 
 ![preview image](images/GuessExample.PNG)
 
@@ -22,7 +30,7 @@ Jonas Review Guesser is a Chrome extension that turns Steam into a review guessi
 ## Limitations
 
 It is a very simple application with many limitations:
-- **Bug: ** Current version only works when your Steam is set to English.
+- **Current gap:** China Edition improvements are in progress and will be implemented in this fork.
 - Somewhat hinders your normal Steam browsing experience (you need to manually turn the Plugin off).
 - The database of appIDs is not automatically updated so the newer titles might not be included.
 - Sometimes the extension brings you to a Steam page that is not or no longer available in your region.
