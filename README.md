@@ -12,6 +12,12 @@ This fork is focused on a China-specific edition.
 - Chinese language support: make the guessing flow work when Steam language is set to Simplified Chinese (not only English).
 - Maintainable data pipeline: introduce dedicated China app ID lists for raw and balanced random modes.
 
+### 中国版改造目标（中文说明）
+
+- 中国厂商筛选：随机池优先筛选中国开发商/工作室的作品。
+- 中文语言可用：在 Steam 设置为简体中文时，猜评价流程可正常工作。
+- 数据可维护：新增中国区专用 appid 数据与批次文件，便于后续持续更新。
+
 ![preview image](images/GuessExample.PNG)
 
 ### Random Game Navigation
