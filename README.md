@@ -5,6 +5,13 @@
 
 > 中国版当前重点：支持中文页面、并优先随机到“游戏名包含中文字符”的作品。
 
+## 原作者与项目来源
+
+- 原作者：**Jonas**（@jonastyroller）
+- 原项目：**Jonas Review Guesser**  
+  https://github.com/LooveToLoose/Jonas-Review-Guesser
+- 本仓库是在原项目基础上进行中国版功能改造与维护，感谢原作者的开源工作。
+
 ![preview image](images/GuessExample.PNG)
 
 ---
