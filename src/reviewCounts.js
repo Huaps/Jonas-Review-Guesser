@@ -45,7 +45,7 @@
 
     // ⬇️ this is where the crash happened before
     const rx =
-      /\b(All|Alle|Toutes|Todas|Tutte|Alle)\s+Reviews?|\bRecent\s+Reviews?/i;
+      /\b(All|Alle|Toutes|Todas|Tutte|Alle)\s+Reviews?|\bRecent\s+Reviews?|全部评测|最近评测|全部評論|最近評論|所有评测|所有評論/i;
     const walker = document.createTreeWalker(
       document.body,
       NodeFilter.SHOW_TEXT,
@@ -73,8 +73,15 @@
     document.querySelectorAll(".dev_row").forEach((row) => {
       const labelEl = row.querySelector(".subtitle");
       const labelText = (labelEl?.textContent || "").trim().toLowerCase();
-      // Match "Publisher:" (case-insensitive, allow missing colon just in case)
-      if (labelText === "publisher:" || labelText === "publisher") {
+      // Match "Publisher" and Chinese equivalents.
+      if (
+        labelText === "publisher:" ||
+        labelText === "publisher" ||
+        labelText === "发行商：" ||
+        labelText === "发行商" ||
+        labelText === "發行商：" ||
+        labelText === "發行商"
+      ) {
         row.classList.add("ext-hide");
       }
     });
@@ -82,7 +89,11 @@
     // 2) Curators section ("What Curators Say")
     document.querySelectorAll("h2").forEach((h2) => {
       const title = (h2.textContent || "").trim().toLowerCase();
-      if (title.includes("what curators say")) {
+      if (
+        title.includes("what curators say") ||
+        title.includes("鉴赏家怎么看") ||
+        title.includes("鑑賞家怎麼看")
+      ) {
         // Hide the closest block-like container if possible, otherwise just the header region
         const block =
           h2.closest(".block") ||
@@ -153,7 +164,13 @@
     scope.querySelectorAll(".summary_text").forEach((st) => {
       const t =
         (st.querySelector(".title")?.textContent || "").toLowerCase();
-      if (/overall\s*reviews/.test(t)) candidates.push(st);
+      if (
+        /overall\s*reviews|all\s*reviews|全部评测|全部評論|所有评测|所有評論/.test(
+          t
+        )
+      ) {
+        candidates.push(st);
+      }
     });
 
     // De-dup
@@ -177,7 +194,11 @@
         const fullText = box.textContent || "";
 
         // Special case: "No reviews" → 0
-        if (/no reviews/i.test(fullText)) {
+        if (
+          /no reviews|there are no reviews for this product|暂无评测|尚无评测|没有评测|未有評論|暫無評論/.test(
+            fullText.toLowerCase()
+          )
+        ) {
           return { el: box, count: 0 };
         }
 
@@ -216,7 +237,11 @@
     hidden.forEach((n) => n.classList.remove("ext-hide"));
     try {
       const fullText = box.textContent || "";
-      if (/no reviews/i.test(fullText)) {
+      if (
+        /no reviews|there are no reviews for this product|暂无评测|尚无评测|没有评测|未有評論|暫無評論/.test(
+          fullText.toLowerCase()
+        )
+      ) {
         return { el: box, count: 0 };
       }
 
@@ -273,7 +298,14 @@
       const t = (titleEl.textContent || "")
         .replace(/\s+/g, " ")
         .toLowerCase();
-      if (t.includes("there are no reviews for this product")) {
+      if (
+        t.includes("there are no reviews for this product") ||
+        t.includes("暂无评测") ||
+        t.includes("尚无评测") ||
+        t.includes("没有评测") ||
+        t.includes("未有评论") ||
+        t.includes("暫無評論")
+      ) {
         return { el: titleEl, count: 0 };
       }
     }
@@ -285,7 +317,14 @@
       const text = (box.textContent || "")
         .replace(/\s+/g, " ")
         .toLowerCase();
-      if (text.includes("there are no reviews for this product")) {
+      if (
+        text.includes("there are no reviews for this product") ||
+        text.includes("暂无评测") ||
+        text.includes("尚无评测") ||
+        text.includes("没有评测") ||
+        text.includes("未有评论") ||
+        text.includes("暫無評論")
+      ) {
         return { el: box, count: 0 };
       }
     }
@@ -293,7 +332,14 @@
     const bodyText = (document.body?.textContent || "")
       .replace(/\s+/g, " ")
       .toLowerCase();
-    if (bodyText.includes("there are no reviews for this product")) {
+    if (
+      bodyText.includes("there are no reviews for this product") ||
+      bodyText.includes("暂无评测") ||
+      bodyText.includes("尚无评测") ||
+      bodyText.includes("没有评测") ||
+      bodyText.includes("未有评论") ||
+      bodyText.includes("暫無評論")
+    ) {
       return { el: document.body, count: 0 };
     }
 

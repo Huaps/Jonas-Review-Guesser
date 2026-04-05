@@ -1,5 +1,6 @@
 (function (root) {
   const ns = (root.ReviewGuesser = root.ReviewGuesser || {});
+  const isChineseLocale = ns.isChineseLocale;
 
   // ---------------------------------------------------------------------------
   // CSV loading + caching
@@ -17,6 +18,18 @@
 
   // Simple in-memory cache: path -> Promise<number[]>
   const CSV_CACHE = Object.create(null);
+  const APP_NAME_CACHE = Object.create(null);
+  const CHINESE_NAME_CACHE = Object.create(null);
+  const HAN_CHAR_RX = /[\u3400-\u9FFF]/;
+
+  function getText(key) {
+    const zh = !!(isChineseLocale && isChineseLocale());
+    const dict = {
+      nextRaw: zh ? "下一款（原始）" : "Next (Raw)",
+      nextBalanced: zh ? "下一款（均衡）" : "Next (Balanced)",
+    };
+    return dict[key] || key;
+  }
 
   /**
    * Load a CSV file and parse it into an array of app IDs (numbers).
@@ -58,6 +71,91 @@
   }
 
   /**
+   * Resolve Steam app name via appdetails endpoint.
+   *
+   * @param {number} appid
+   * @returns {Promise<string|null>}
+   */
+  function loadSteamAppName(appid) {
+    const key = String(appid);
+    if (APP_NAME_CACHE[key]) return APP_NAME_CACHE[key];
+
+    const url = `https://store.steampowered.com/api/appdetails?appids=${encodeURIComponent(
+      key
+    )}`;
+    APP_NAME_CACHE[key] = fetch(url, { credentials: "omit" })
+      .then((r) => {
+        if (!r.ok) throw new Error("appdetails fetch failed: " + r.status);
+        return r.json();
+      })
+      .then((json) => {
+        const node = json && json[key];
+        if (!node || !node.success || !node.data) return null;
+        const name = (node.data.name || "").trim();
+        return name || null;
+      })
+      .catch((err) => {
+        console.warn("[ext] failed to load app name", appid, err);
+        return null;
+      });
+
+    return APP_NAME_CACHE[key];
+  }
+
+  /**
+   * Check whether an app name contains any Han character.
+   *
+   * @param {string|null} name
+   * @returns {boolean}
+   */
+  function hasHanCharInName(name) {
+    if (!name) return false;
+    return HAN_CHAR_RX.test(name);
+  }
+
+  /**
+   * Determine whether an app's name contains Chinese characters.
+   *
+   * @param {number} appid
+   * @returns {Promise<boolean>}
+   */
+  async function isChineseNamedAppId(appid) {
+    const key = String(appid);
+    if (key in CHINESE_NAME_CACHE) return CHINESE_NAME_CACHE[key];
+    const name = await loadSteamAppName(appid);
+    const isHit = hasHanCharInName(name);
+    CHINESE_NAME_CACHE[key] = isHit;
+    return isHit;
+  }
+
+  /**
+   * Try to pick one app id whose game name contains Chinese characters.
+   * Basic version: sample random IDs and validate names lazily.
+   *
+   * @param {number[]} ids
+   * @param {number} maxAttempts
+   * @returns {Promise<number|null>}
+   */
+  async function pickChineseNamedId(ids, maxAttempts = 25) {
+    if (!ids || !ids.length) return null;
+
+    const cap = Math.max(1, Math.min(maxAttempts, ids.length));
+    const tried = new Set();
+
+    while (tried.size < cap) {
+      const id = pickRandomId(ids);
+      if (id == null || tried.has(id)) continue;
+      tried.add(id);
+
+      if (await isChineseNamedAppId(id)) {
+        return id;
+      }
+    }
+
+    return null;
+  }
+
+  /**
    * Existing behavior: full released app id list (for Pure Random).
    *
    * @returns {Promise<number[]>}
@@ -86,7 +184,8 @@
    */
   async function getPureRandomAppId() {
     const ids = await getReleasedAppIds();
-    return pickRandomId(ids);
+    const filtered = await pickChineseNamedId(ids, 30);
+    return filtered != null ? filtered : pickRandomId(ids);
   }
 
   /**
@@ -104,7 +203,7 @@
     const file =
       BATCH_FILES[Math.floor(Math.random() * BATCH_FILES.length)];
     const ids = await loadCsvIds(file);
-    const id = pickRandomId(ids);
+    const id = await pickChineseNamedId(ids, 20);
 
     if (id != null) return id;
 
@@ -182,8 +281,8 @@
       header.querySelector("h2.pageheader") || header;
 
     // Wrap both buttons in a simple row
-    const pureBtn = makeNextGameButton("Next (Raw)", "pure");
-    const smartBtn = makeNextGameButton("Next (Balanced)", "smart");
+    const pureBtn = makeNextGameButton(getText("nextRaw"), "pure");
+    const smartBtn = makeNextGameButton(getText("nextBalanced"), "smart");
 
     const row = document.createElement("div");
     row.style.marginTop = "10px";
@@ -218,8 +317,8 @@
     );
     if (hubBtn) hubBtn.remove();
 
-    const pureBtn = makeNextGameButton("Next (Raw)", "pure");
-    const smartBtn = makeNextGameButton("Next (Balanced)", "smart");
+    const pureBtn = makeNextGameButton(getText("nextRaw"), "pure");
+    const smartBtn = makeNextGameButton(getText("nextBalanced"), "smart");
 
     // Let Steam's layout handle positioning; just drop them in order
     container.appendChild(pureBtn);

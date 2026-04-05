@@ -1,5 +1,17 @@
 (function (root) {
   const ns = (root.ReviewGuesser = root.ReviewGuesser || {});
+  const isChineseLocale = ns.isChineseLocale;
+
+  function getTextSet() {
+    const zh = !!(isChineseLocale && isChineseLocale());
+    return {
+      oopsHeader: zh ? /哎呀|抱歉|出错/i : /oops[,! ]/i,
+      oopsCrumbs: zh ? /哎呀|抱歉|错误/i : /\boops\b/i,
+      regionMsg: zh
+        ? /您所在的国家.?地区不可用|当前地区不可用|在您的地区不可用|您所在地区不可用/i
+        : /unavailable in your region|not available in your region/i,
+    };
+  }
 
   /**
    * Best-effort detection of the current Steam app id.
@@ -65,6 +77,7 @@
    * @returns {boolean}
    */
   function isUnavailableRegionPage() {
+    const textSet = getTextSet();
     // Quick checks for the classic "Oops, sorry!" page
     const header = document.querySelector(
       ".page_header_ctn .page_content"
@@ -82,16 +95,14 @@
     // Examples:
     // h2 => "Oops, sorry!"
     // breadcrumbs blockbg => "Home > Oops"
-    const hasOopsHeader = /oops[,! ]/.test(headerText);
-    const hasOopsCrumbs = /\boops\b/.test(crumbsText);
+    const hasOopsHeader = textSet.oopsHeader.test(headerText);
+    const hasOopsCrumbs = textSet.oopsCrumbs.test(crumbsText);
 
     // Additionally, the main body often contains a message like
     // "This item is currently unavailable in your region"
     const bodyText =
       (document.body?.textContent || "").toLowerCase();
-    const hasRegionMsg = /unavailable in your region|not available in your region/.test(
-      bodyText
-    );
+    const hasRegionMsg = textSet.regionMsg.test(bodyText);
 
     return (hasOopsHeader && hasOopsCrumbs) || (hasOopsHeader && hasRegionMsg);
   }

@@ -70,8 +70,9 @@ It is not my plan to work on this too much more so if you'd like to see these li
   - The folder that includes `manifest.json`.
 - Confirm that **Jonas Review Guesser** appears in the list of extensions.
 
-### Step 3: Set Steam language to ENGLISH!
-- **Set your language to "English"!** This is crucial for the current version to work.
+### Step 3: Set Steam language to English or Simplified Chinese
+- **Set your language to "English" or "Simplified Chinese".**  
+  The China Edition baseline supports both languages.
 
 ### Step 4: Verify It Works
 

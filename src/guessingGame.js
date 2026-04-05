@@ -7,6 +7,19 @@
   const hideAllSteamReviewCounts = ns.hideAllSteamReviewCounts;
   const waitForAnyReviewCount = ns.waitForAnyReviewCount;
   const formatNum = ns.formatNum;
+  const isChineseLocale = ns.isChineseLocale;
+
+  function getText(key) {
+    const zh = !!(isChineseLocale && isChineseLocale());
+    const dict = {
+      loading: zh ? "正在等待评测数据加载…" : "Waiting for review count to load…",
+      loadError: zh ? "评测数量读取失败" : "Failed to load review count",
+      note: zh
+        ? "请猜测“全部评测”（所有语言）的总数量。"
+        : "Guess the All Reviews count (all languages).",
+    };
+    return dict[key] || key;
+  }
 
   function buildGuessSet(trueCount) {
     const MIN_ANSWERS = 6;
@@ -179,7 +192,7 @@
       wrap.dataset.extAppid = appId;
       const msg = document.createElement("div");
       msg.className = "ext-wait";
-      msg.textContent = "Waiting for review count to load…";
+      msg.textContent = getText("loading");
       wrap.appendChild(msg);
       container.prepend(wrap);
     } else {
@@ -191,7 +204,7 @@
           msg.className = "ext-wait";
           wrap.appendChild(msg);
         }
-        msg.textContent = "Waiting for review count to load…";
+        msg.textContent = getText("loading");
       }
     }
     container.classList.add("ext-mask-reviews");
@@ -239,8 +252,7 @@
       const got = await waitForAnyReviewCount(5000);
       if (!got) {
         if (!wrap.querySelector(".ext-error")) {
-          wrap.innerHTML =
-            '<div class="ext-error">Failed to load review count</div>';
+          wrap.innerHTML = `<div class="ext-error">${getText("loadError")}</div>`;
         }
         return;
       }
@@ -265,8 +277,7 @@
 
       const note = document.createElement("div");
       note.className = "ext-subtle";
-      note.textContent =
-        "Guess the All Reviews count (all languages).";
+      note.textContent = getText("note");
       wrap.appendChild(note);
 
       const correct = trueCount;
