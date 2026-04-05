@@ -1,161 +1,147 @@
-# Jonas Review Guesser (China Edition Fork)
+# Steam 评价竞猜（中国版）
 
-## Overview
+一个面向 Steam 玩家与独立游戏开发者的 Chrome 插件。  
+它会把商店页里的评价数量先隐藏起来，让你先猜再揭晓，帮助你更直观地感受一款游戏的市场表现。
 
-Jonas Review Guesser is a Chrome extension that turns Steam into a review guessing game. It hides the review count (and some other clues) on Steam store pages and asks you to guess the number of reviews instead. On top of that, it adds buttons at the top of the page that take you to completely random games on Steam, giving you a new way to browse the store, step outside your usual bubble, and gradually improve your intuition for how successful different games are.
-
-This fork is focused on a China-specific edition.
-
-### China Edition Focus
-
-- China-only random pool: add filtering for titles made by China-based developers/studios.
-- Chinese language support: make the guessing flow work when Steam language is set to Simplified Chinese (not only English).
-- Maintainable data pipeline: introduce dedicated China app ID lists for raw and balanced random modes.
-
-### 中国版改造目标（中文说明）
-
-- 中国厂商筛选：随机池优先筛选中国开发商/工作室的作品。
-- 中文语言可用：在 Steam 设置为简体中文时，猜评价流程可正常工作。
-- 数据可维护：新增中国区专用 appid 数据与批次文件，便于后续持续更新。
+> 中国版当前重点：支持中文页面、并优先随机到“游戏名包含中文字符”的作品。
 
 ![preview image](images/GuessExample.PNG)
 
-### Random Game Navigation
+---
 
-- **Next (Raw)**
-  - Sends you to a completely random Steam game.
-  - Note: because this picks from *all* Steam games, you will often see:
-    - Lower quality games
-    - Shovelware / obscure titles
-- **Next (Balanced)**
-  - Sends you to a random Steam game with a bias toward “better” games.
-  - This can still bring you to any game on Steam but the distribution is more biased towards better games:
-    - Surfaces more recognizable / higher-quality titles more often.
-    - Still maintains some variety so you don’t only see top hits.
+## 这个版本适合谁
 
-## Limitations
+### 玩家
+- 通过“先猜后看”提高对 Steam 游戏热度的直觉。
+- 用随机跳转发现平时不会主动点开的作品。
 
-It is a very simple application with many limitations:
-- **Current gap:** China Edition improvements are in progress and will be implemented in this fork.
-- Somewhat hinders your normal Steam browsing experience (you need to manually turn the Plugin off).
-- The database of appIDs is not automatically updated so the newer titles might not be included.
-- Sometimes the extension brings you to a Steam page that is not or no longer available in your region.
-- Lacking a lot of features that might be cool e.g. filtering by tag, entering the guess into a text field, etc. etc.
-
-It is not my plan to work on this too much more so if you'd like to see these limitations resolved, fork it and do it yourself! I'd be happy to try out your version. :)
-
-## Installation (Local Chrome Extension)
-
-### Prerequisites
-
-- **Google Chrome** installed.
-- The extension source code downloaded:
-  - Either via `git clone`:
-    ```bash
-    git clone https://github.com/LooveToLoose/Jonas-Review-Guesser
-    ```
-  - Or by downloading a ZIP and extracting it.
-
-### Step 1: Open Chrome Extensions Page
-
-- In Chrome, go to:
-  - `chrome://extensions/`
-- Enable **Developer mode**:
-  - Toggle the **Developer mode** switch in the top-right corner.
-
-### Step 2: Load the Unpacked Extension
-
-- Click **“Load unpacked”**.
-- Select the folder containing the extension:
-  - The folder that includes `manifest.json`.
-- Confirm that **Jonas Review Guesser** appears in the list of extensions.
-
-### Step 3: Set Steam language to English or Simplified Chinese
-- **Set your language to "English" or "Simplified Chinese".**  
-  The China Edition baseline supports both languages.
-
-### Step 4: Verify It Works
-
-- Make sure the extension is **enabled** (toggle is on).
-- Open any Steam store page:
-  - Check if:
-    - Review counts are replaced with guess buttons.
-    - The **Next (Raw)** and **Next (Balanced)** buttons appear at the top of the page.
+### 独立游戏开发者
+- 用更“盲测”的方式观察不同类型产品在 Steam 上的评论量级。
+- 快速横向浏览同赛道作品，建立对市场体量的感知。
 
 ---
 
-## Enabling / Disabling the Extension
+## 功能总览
 
-### Enable
+### 1) 评价竞猜
+- 隐藏主要评论数量信息，插入竞猜按钮。
+- 你点击一个答案后会显示对错结果。
+- **新行为：猜完后会自动恢复玩家评论区域**，方便立即继续查看真实评论内容。
 
-- Go to `chrome://extensions/`.
-- Find **Jonas Review Guesser**.
-- Ensure the toggle is switched **on**.
+### 2) 随机跳转（页面顶部按钮）
+- **Next (Raw) / 下一款（原始）**：更随机。
+- **Next (Balanced) / 下一款（均衡）**：相对更偏向“质量/热度更高”的池子。
 
-### Disable
+### 3) 中国版基础筛选（当前实现）
+- 随机池会优先挑选**游戏名包含中文字符**的作品。
+- 这是一个快速可用的基础规则，后续可继续提升精度。
 
-- Go to `chrome://extensions/`.
-- Find **Jonas Review Guesser**.
-- Switch the toggle **off** to temporarily disable it.
-- (Optional) Click **Remove** if you want to uninstall it completely.
+### 4) 语言支持
+- 支持 Steam 语言为：
+  - English
+  - 简体中文（部分繁体文案也做了兼容匹配）
 
 ---
 
-## Updating the Extension
+## 安装教程（保留）
 
-### When You Pull New Changes (Git) or Download a New Version
+### 前置条件
+- 已安装 Google Chrome。
+- 已下载本仓库代码（任选其一）：
+  - `git clone https://github.com/Huaps/Jonas-Review-Guesser`
+  - 或直接下载 ZIP 后解压
 
-- If you updated the extension files by:
-  - Running `git pull` in the project folder, or
-  - Replacing the folder with a newer version,
+### 第 1 步：打开扩展管理页
+1. 在 Chrome 地址栏输入：`chrome://extensions/`
+2. 打开右上角 **开发者模式（Developer mode）**
 
-do the following:
+### 第 2 步：加载插件
+1. 点击 **加载已解压的扩展程序（Load unpacked）**
+2. 选择本项目根目录（包含 `manifest.json` 的目录）
+3. 确认扩展出现在列表中
 
-### Step 1: Go to the Extensions Page
+### 第 3 步：设置 Steam 语言
+- 将 Steam 商店语言设为：
+  - English，或
+  - 简体中文
 
-- Open `chrome://extensions/`.
-- Ensure **Developer mode** is still enabled.
+### 第 4 步：验证是否生效
+打开任意 Steam 游戏页，确认：
+- 评论数量被竞猜组件替代；
+- 顶部出现 Next 按钮（Raw / Balanced）；
+- 点击猜测后，评论区域会恢复显示。
 
-### Step 2: Reload the Extension
+---
 
-- Find **Jonas Review Guesser**.
-- Click the **Reload** button (⟲) on the extension card.
-  - This loads the latest version of the source from the folder.
+## 使用教程（玩家 & 开发者）
 
-### Step 3: If Something Breaks
+### 基本玩法
+1. 打开一个 Steam 游戏页。
+2. 先看页面信息（不看评论数），尝试判断产品体量。
+3. 在插件给出的数字中选择一个答案。
+4. 看结果后，再阅读恢复出来的玩家评论。
 
-- Disable and re-enable the extension.
-- If issues persist:
-  - Click **Remove**.
-  - Then click **Load unpacked** again and select the updated folder.
+### 推荐体验方式（开发者）
+1. 用 **Next (Balanced)** 连续看 10~20 个同类作品。
+2. 每次先猜评论量，再对照真实结果。
+3. 记录“你直觉与实际”的差距，逐步形成自己的市场基准。
+
+---
+
+## 启用 / 停用
+
+### 启用
+1. 打开 `chrome://extensions/`
+2. 找到本插件
+3. 确保开关为开启
+
+### 停用
+1. 打开 `chrome://extensions/`
+2. 关闭插件开关即可临时停用
+3. 如需卸载可点击“移除”
+
+---
+
+## 更新教程（保留）
+
+当你 `git pull` 拉取新代码，或替换了插件文件后：
+
+1. 打开 `chrome://extensions/`
+2. 确保开发者模式仍开启
+3. 在插件卡片上点击 **重新加载（Reload）**
+
+若异常：
+1. 先关闭再开启插件
+2. 仍不行则移除后重新 Load unpacked
+
+---
+
+## 当前实现说明与已知限制
+
+1. **中国厂商判定目前是基础规则**  
+   当前采用“游戏名包含中文字符”来做优先筛选，优点是实现快、可立刻体验；缺点是会有误判与漏判。
+
+2. **随机数据不是实时自动更新**  
+   新上架作品可能不会第一时间进入数据池。
+
+3. **区域限制页面**  
+   某些游戏可能在你的地区不可见，插件会尽量提供继续随机跳转按钮。
+
+---
+
+## 给二次开发者的快速说明
+
+- 主要逻辑在 `src/`：
+  - `nextGame.js`：随机跳转与筛选
+  - `reviewCounts.js`：评论隐藏/识别/恢复
+  - `guessingGame.js`：竞猜交互
+  - `utils.js`：数字解析与语言辅助
+- 数据文件在 `data/`（appid 列表）
 
 ---
 
 ## License
 
-- Short summary:
-  - Non-commercial use only.
-  - Forking, modifying, and renaming allowed.
-  - Giving credit is not required.
-  - No warranty, no support, use at your own risk.
-
-See the license file for more details.
-
-## FAQ
-
-> Will there be a Firefox version?
-
-Only if one of you makes one.
-
-> Can you add *(insert any feature)* to this extension?
-
-Probably not. I'm happy to try out your version if you add any cool stuff.
-
-> I think it should be different. I think it should be...
-
-Okay. Just make it.
-
-> Can you make a YouTube video guessing our Steam games?
-
-Sure, I'll do that on my YT channel (@jonastyroller) and Discord. Sounds like a great idea. 
+请查看仓库中的 `LICENSE` 文件。  
+默认按原项目许可证执行，使用前请先确认许可范围与风险条款。
 
